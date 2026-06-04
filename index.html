@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交流課程安排表</title>
+  
+  <!-- 引入 Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 引入 React 與 ReactDOM (CDN) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- 引入 Babel 用於在瀏覽器編譯 JSX (CDN) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* 隱藏橫向捲軸但保持可滑動功能 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    body {
+      background-color: #f8fafc; /* Tailwind slate-50 */
+    }
+  </style>
+</head>
+<body>
+  <!-- React 應用的根節點 -->
+  <div id="root"></div>
+
+  <!-- React 程式碼區塊 -->
+  <script type="text/babel">
+    const { useState } = React;
+
+    // --- 圖示元件 (替代 lucide-react，確保單一檔案可運作) ---
+    const Icon = ({ path, className = "h-5 w-5" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {path}
+      </svg>
+    );
+    const Globe = ({className}) => <Icon className={className} path={<><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>} />;
+    const Calendar = ({className}) => <Icon className={className} path={<><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></>} />;
+    const Clock = ({className}) => <Icon className={className} path={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} />;
+    const MapPin = ({className}) => <Icon className={className} path={<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>} />;
+    const Users = ({className}) => <Icon className={className} path={<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />;
+    const BookOpen = ({className}) => <Icon className={className} path={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />;
+    const User = ({className}) => <Icon className={className} path={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />;
+    const Info = ({className}) => <Icon className={className} path={<><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></>} />;
+    const GraduationCap = ({className}) => <Icon className={className} path={<><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></>} />;
+    const Home = ({className}) => <Icon className={className} path={<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />;
+    const Plane = ({className}) => <Icon className={className} path={<><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6 4-3 3-3-1-2 1 2.5 3.5L10 21l1-2-1-3 3-3 4 6l1.2-.7c.4-.2.7-.6.6-1.1Z"/></>} />;
+
+    // --- 資料結構 ---
+    const scheduleData = [
+      {
+        date: '6/7', dayEn: 'Sun', dayZh: '日',
+        periods: [
+          {
+            time: 'Morning', type: 'event',
+            titleEn: 'Arrival & Pickup', titleZh: '中正國小接機 / 北站接行李',
+            locationEn: 'Chung Cheng Elementary / North Station', locationZh: '中正國小 / 北站',
+            attendees: ['All'],
+            descEn: '9:30 Luggage pickup, 10:00 Welcome meetup.', descZh: '9:30 各校老師到北站接行李，10:00 中正國小相見歡。'
+          }
+        ]
+      },
+      {
+        date: '6/8', dayEn: 'Mon', dayZh: '一',
+        periods: [
+          {
+            time: '08:20-09:05', nameEn: 'Period 1', nameZh: '第 1 節',
+            classes: [
+              { class: '903', subjectEn: 'English', subjectZh: '英語課', foreigners: ['Tyler'], localTeacher: '陳怜縈' },
+              { class: '904', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: '蕭茵如' },
+              { class: '801', subjectEn: 'Scouts', subjectZh: '童軍課', foreigners: ['Irene'], localTeacher: '賴致媛' }
+            ]
+          },
+          {
+            time: '09:15-10:00', nameEn: 'Period 2', nameZh: '第 2 節',
+            classes: [
+              { class: '703', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: '張瑞芳' },
+              { class: '702', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Tyler'], localTeacher: '蕭茵如' },
+              { class: '806', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Irene'], localTeacher: '余珮綺' }
+            ]
+          },
+          {
+            time: '10:10-10:55', nameEn: 'Period 3', nameZh: '第 3 節',
+            classes: [
+              { class: '902', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Irene'], localTeacher: '連雅淇' },
+              { class: '903', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Tyler'], localTeacher: '詹佩芬' },
+              { class: '706', subjectEn: 'Performing Arts', subjectZh: '表演藝術', foreigners: ['Sophia'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '11:00-11:45', nameEn: 'Period 4', nameZh: '第 4 節',
+            classes: [
+              { class: '701', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Tyler', 'Sophia'], localTeacher: '蕭薇薇' },
+              { class: '802', subjectEn: 'Performing Arts', subjectZh: '表演藝術', foreigners: ['Irene'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '13:00-13:45', nameEn: 'Period 5', nameZh: '第 5 節',
+            classes: [
+              { class: '701', subjectEn: 'Performing Arts', subjectZh: '表演藝術', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '14:00-14:45', nameEn: 'Period 6', nameZh: '第 6 節',
+            classes: [
+              { class: '702', subjectEn: 'Performing Arts', subjectZh: '表演藝術', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '15:00-15:45', nameEn: 'Period 7', nameZh: '第 7 節',
+            classes: [
+              { class: '901', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Tyler'], localTeacher: '連雅淇' },
+              { class: '705', subjectEn: 'Scouts', subjectZh: '童軍課', foreigners: ['Sophia'], localTeacher: '賴致媛' }
+            ]
+          }
+        ]
+      },
+      {
+        date: '6/9', dayEn: 'Tue', dayZh: '二',
+        periods: [
+          {
+            time: '08:20-12:00', type: 'event',
+            titleEn: 'Nuan Nuan JHS Visit', titleZh: '暖中參觀及交流',
+            locationEn: 'Nuan Nuan Junior High School', locationZh: '暖暖國中',
+            attendees: ['All'],
+            descEn: 'Depart for Nuan Nuan JHS at 8:20 a.m.', descZh: '8:20 出發前往暖暖國中進行交流。'
+          },
+          {
+            time: '13:00-16:00', type: 'event',
+            titleEn: 'Graduation Ceremony', titleZh: '畢業典禮',
+            locationEn: 'Cheng Kung JHS', locationZh: '成功國中',
+            attendees: ['All'],
+            descEn: 'Join the school graduation ceremony.', descZh: '參與學校畢業典禮。'
+          }
+        ]
+      },
+      {
+        date: '6/10', dayEn: 'Wed', dayZh: '三',
+        periods: [
+          {
+            time: '09:15-10:00', nameEn: 'Period 2', nameZh: '第 2 節',
+            classes: [
+              { class: '706', subjectEn: 'Filipino', subjectZh: '菲律賓語', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: 'John' }
+            ]
+          },
+          {
+            time: '10:10-10:55', nameEn: 'Period 3', nameZh: '第 3 節',
+            classes: [
+              { class: '806', subjectEn: 'Filipino', subjectZh: '菲律賓語', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: 'John' }
+            ]
+          },
+          {
+            time: '11:00-11:45', nameEn: 'Period 4', nameZh: '第 4 節',
+            classes: [
+              { class: '701', subjectEn: 'Scouts', subjectZh: '童軍課', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '賴致媛' }
+            ]
+          },
+          {
+            time: '13:00-13:45', nameEn: 'Period 5', nameZh: '第 5 節',
+            classes: [
+              { class: '704', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: '張瑞芳' },
+              { class: '802', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Tyler', 'Irene'], localTeacher: '連雅淇' }
+            ]
+          },
+          {
+            time: '14:00-14:45', nameEn: 'Period 6', nameZh: '第 6 節',
+            classes: [
+              { class: '802', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Tyler'], localTeacher: '蕭薇薇' },
+              { class: '801', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Irene'], localTeacher: '連雅淇' },
+              { class: '705', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Sophia'], localTeacher: '蕭茵如' }
+            ]
+          },
+          {
+            time: '15:00-15:45', nameEn: 'Period 7', nameZh: '第 7 節',
+            classes: [
+              { class: '704', subjectEn: 'Scouts', subjectZh: '童軍課', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '賴致媛' }
+            ]
+          }
+        ]
+      },
+      {
+        date: '6/11', dayEn: 'Thu', dayZh: '四',
+        periods: [
+          {
+            time: '08:20-09:05', nameEn: 'Period 1', nameZh: '第 1 節',
+            classes: [
+              { class: '804', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: '許慧卿' },
+              { class: '805', subjectEn: 'Scouts', subjectZh: '童軍課', foreigners: ['Irene', 'Tyler'], localTeacher: '賴致媛' }
+            ]
+          },
+          {
+            time: '09:15-10:00', nameEn: 'Period 2', nameZh: '第 2 節',
+            classes: [
+              { class: '804', subjectEn: 'Visual Arts', subjectZh: '視覺藝術', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '10:10-10:55', nameEn: 'Period 3', nameZh: '第 3 節',
+            classes: [
+              { class: '705', subjectEn: 'Performing Arts', subjectZh: '表演藝術', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '11:00-11:45', nameEn: 'Period 4', nameZh: '第 4 節',
+            classes: [
+              { class: '806', subjectEn: 'English', subjectZh: '英語課', foreigners: ['Tyler'], localTeacher: '余珮綺' },
+              { class: '802', subjectEn: 'Visual Arts', subjectZh: '視覺藝術', foreigners: ['Irene'], localTeacher: '潘璿安' },
+              { class: '705', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Sophia'], localTeacher: '蕭茵如' }
+            ]
+          },
+          {
+            time: '13:00-13:45', nameEn: 'Period 5', nameZh: '第 5 節',
+            classes: [
+              { class: '704', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: '張瑞芳' },
+              { class: '802', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Tyler', 'Irene'], localTeacher: '連雅淇' }
+            ]
+          },
+          {
+            time: '14:00-15:45', nameEn: 'Period 6-7', nameZh: '第 6-7 節',
+            classes: [
+              { class: 'Conference Rm', subjectEn: 'Traditional Calligraphy', subjectZh: '傳統書法', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '江秋貞' }
+            ]
+          }
+        ]
+      },
+      {
+        date: '6/12', dayEn: 'Fri', dayZh: '五',
+        periods: [
+          {
+            time: '08:20-09:05', nameEn: 'Period 1', nameZh: '第 1 節',
+            classes: [
+              { class: '707', subjectEn: 'English', subjectZh: '英語課', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '陳碧玉' }
+            ]
+          },
+          {
+            time: '09:15-10:00', nameEn: 'Period 2', nameZh: '第 2 節',
+            classes: [
+              { class: '801', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: '余珮綺' },
+              { class: '803', subjectEn: 'Performing Arts', subjectZh: '表演藝術', foreigners: ['Irene', 'Tyler'], localTeacher: '潘璿安' }
+            ]
+          },
+          {
+            time: '10:10-11:45', nameEn: 'Period 3-4', nameZh: '第 3-4 節',
+            classes: [
+              { class: 'Class Rm', subjectEn: 'Tech / Int\'l Education', subjectZh: '科技與國際教育', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '詹佩芬' }
+            ]
+          },
+          {
+            time: '13:00-13:45', nameEn: 'Period 5', nameZh: '第 5 節',
+            classes: [
+              { class: 'TBD', subjectEn: 'Bilingual Teacher Class', subjectZh: '雙語教師課程', foreigners: ['All'], localTeacher: 'TBD' }
+            ]
+          },
+          {
+            time: '14:00-15:45', nameEn: 'Period 6-7', nameZh: '第 6-7 節',
+            classes: [
+              { class: '702', subjectEn: 'Club Activity', subjectZh: '接待學生社團', foreigners: ['Tyler'], localTeacher: '接待老師' },
+              { class: '706', subjectEn: 'Club Activity', subjectZh: '接待學生社團', foreigners: ['Sophia'], localTeacher: '接待老師' },
+              { class: '804', subjectEn: 'Club Activity', subjectZh: '接待學生社團', foreigners: ['Irene'], localTeacher: '接待老師' }
+            ]
+          },
+          {
+            time: '17:50-18:00', type: 'event',
+            titleEn: 'Reunion & Farewell', titleZh: 'Reunion & Farewell (歡送會)',
+            locationEn: 'Chung Cheng Elementary', locationZh: '中正國小',
+            attendees: ['All'],
+            descEn: 'Parents and students check-in.', descZh: '家長與學生報到。'
+          }
+        ]
+      },
+      {
+        date: '6/13', dayEn: 'Sat', dayZh: '六',
+        periods: [
+          {
+            time: 'All Day', type: 'event',
+            titleEn: 'Homestay & Volunteer Activities', titleZh: '寄宿家庭與志工安排活動',
+            locationEn: 'Various Locations', locationZh: '各項安排地點',
+            attendees: ['All'],
+            descEn: 'Please bring the student volunteers to the Evergreen Laurel Hotel Taipei before 8:00 a.m.', descZh: '請在 8:00 以前將志工學生送到長榮桂冠酒店。'
+          }
+        ]
+      },
+      {
+        date: '6/14', dayEn: 'Sun', dayZh: '日',
+        periods: [
+          {
+            time: 'All Day', type: 'event',
+            titleEn: 'Homestay & Volunteer Activities', titleZh: '寄宿家庭與志工安排活動',
+            locationEn: 'Various Locations', locationZh: '各項安排地點',
+            attendees: ['All'],
+            descEn: 'Spend the day with homestay family.', descZh: '與接待家庭共度周末時光。'
+          },
+          {
+            time: '17:50-18:00', type: 'event',
+            titleEn: 'Reunion & Farewell', titleZh: 'Reunion & Farewell (歡送會)',
+            locationEn: 'Chung Cheng Elementary', locationZh: '中正國小',
+            attendees: ['All'],
+            descEn: 'Parents and students check-in.', descZh: '家長與學生報到。'
+          }
+        ]
+      }
+    ];
+
+    const hostStudents = [
+      { class: '702', local: '張珺皓 Lucas', foreigner: 'Tyler Abitbol' },
+      { class: '706', local: '陳若亞 Lauren', foreigner: 'Sophia Fu' },
+      { class: '804', local: '李宸沂 Amber', foreigner: 'Irene Chu' },
+    ];
+
+    const dictionary = {
+      en: {
+        appTitle: 'Exchange Program Schedule',
+        appSubtitle: 'Global Cultural and Educational Foundation & Cheng Kung JHS',
+        dateRange: 'June 7 - June 14, 2026',
+        switchLang: '中文',
+        filterLabel: 'View Schedule For:',
+        filterAll: 'Everyone',
+        hostTitle: 'Host Students',
+        class: 'Class',
+        teacher: 'Teacher',
+        emptySchedule: 'No scheduled activities for the selected person on this day.',
+        attendees: 'Attendees:',
+      },
+      zh: {
+        appTitle: '交流課程安排表',
+        appSubtitle: '高博文教基金會與成功國中',
+        dateRange: '115 年 6 月 7 日至 115 年 6 月 14 日',
+        switchLang: 'English',
+        filterLabel: '行程檢視:',
+        filterAll: '所有人',
+        hostTitle: '接待學生名單',
+        class: '班級',
+        teacher: '授課教師',
+        emptySchedule: '所選人員本日無安排課程。',
+        attendees: '參與者:',
+      }
+    };
+
+    function App() {
+      const [lang, setLang] = useState('zh');
+      const [activeDate, setActiveDate] = useState('6/8');
+      const [selectedPerson, setSelectedPerson] = useState('All');
+
+      const t = (key) => dictionary[lang][key];
+
+      const toggleLanguage = () => {
+        setLang(lang === 'en' ? 'zh' : 'en');
+      };
+
+      const getFilteredPeriods = (periods) => {
+        if (selectedPerson === 'All') return periods;
+
+        return periods.map(period => {
+          if (period.type === 'event') {
+            return period;
+          }
+          const filteredClasses = period.classes.filter(cls => 
+            cls.foreigners.includes('All') || cls.foreigners.includes(selectedPerson)
+          );
+          return { ...period, classes: filteredClasses };
+        }).filter(period => period.type === 'event' || period.classes.length > 0);
+      };
+
+      const currentDayData = scheduleData.find(d => d.date === activeDate);
+      const filteredPeriods = getFilteredPeriods(currentDayData?.periods || []);
+
+      const getPersonColor = (name) => {
+        switch(name) {
+          case 'Tyler': return 'bg-blue-100 text-blue-800 border-blue-200';
+          case 'Sophia': return 'bg-pink-100 text-pink-800 border-pink-200';
+          case 'Irene': return 'bg-purple-100 text-purple-800 border-purple-200';
+          default: return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+      };
+
+      return (
+        <div className="min-h-screen text-slate-800 font-sans pb-12">
+          {/* Header */}
+          <header className="bg-sky-700 text-white shadow-md sticky top-0 z-20">
+            <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Globe className="h-8 w-8 text-sky-200" />
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('appTitle')}</h1>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sky-200 text-xs sm:text-sm mt-1">
+                    <span>{t('appSubtitle')}</span>
+                    <span className="hidden sm:inline opacity-50">|</span>
+                    <span className="font-medium bg-sky-800/50 px-2 py-0.5 rounded-md inline-block w-fit">
+                      <Calendar className="w-3 h-3 inline-block mr-1 mb-0.5" />
+                      {t('dateRange')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={toggleLanguage}
+                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
+              >
+                <Globe className="h-4 w-4" />
+                {t('switchLang')}
+              </button>
+            </div>
+          </header>
+
+          <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+            
+            {/* Host Students Banner */}
+            <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-4 text-sky-700">
+                <Users className="h-5 w-5" />
+                <h2 className="text-lg font-semibold">{t('hostTitle')}</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {hostStudents.map((pair, idx) => (
+                  <div key={idx} className="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <span className="text-xs font-bold text-slate-400 mb-1">{t('class')} {pair.class}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-slate-700">{lang === 'en' ? pair.local.split(' ')[1] : pair.local}</span>
+                      <span className="text-slate-300 mx-2">🤝</span>
+                      <span className="font-medium text-sky-600">{pair.foreigner.split(' ')[0]}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Controls: Filter */}
+            <section className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+               <div className="flex items-center gap-2 px-3 text-slate-600 font-medium">
+                 <User className="h-5 w-5" />
+                 <span>{t('filterLabel')}</span>
+               </div>
+               <div className="flex flex-wrap gap-2 p-1 w-full sm:w-auto">
+                 {['All', 'Tyler', 'Sophia', 'Irene'].map(person => (
+                   <button
+                     key={person}
+                     onClick={() => setSelectedPerson(person)}
+                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 sm:flex-none ${
+                       selectedPerson === person 
+                        ? 'bg-sky-600 text-white shadow-md' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                     }`}
+                   >
+                     {person === 'All' ? t('filterAll') : person}
+                   </button>
+                 ))}
+               </div>
+            </section>
+
+            {/* Schedule Tabs */}
+            <section>
+              <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2">
+                {scheduleData.map((day) => (
+                  <button
+                    key={day.date}
+                    onClick={() => setActiveDate(day.date)}
+                    className={`flex flex-col items-center min-w-[70px] p-3 rounded-xl transition-all border ${
+                      activeDate === day.date
+                        ? 'bg-sky-600 border-sky-600 text-white shadow-md transform scale-105'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="text-xs mb-1 opacity-80">{day.date}</span>
+                    <span className="font-bold text-lg">{lang === 'en' ? day.dayEn : day.dayZh}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Schedule Content */}
+            <section className="space-y-4">
+              {filteredPeriods.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
+                  <Info className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">{t('emptySchedule')}</p>
+                </div>
+              ) : (
+                filteredPeriods.map((period, pIdx) => (
+                  <div key={pIdx} className="flex flex-col sm:flex-row gap-4 bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 relative overflow-hidden">
+                    
+                    {/* Time Indicator */}
+                    <div className="flex flex-row sm:flex-col items-center sm:items-start gap-2 sm:w-32 shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 pb-3 sm:pb-0 sm:pr-4">
+                      <div className="bg-sky-100 text-sky-700 p-2 rounded-lg">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-800 whitespace-nowrap">
+                          {lang === 'en' ? period.nameEn : period.nameZh}
+                        </h3>
+                        <p className="text-xs font-medium text-slate-500 mt-0.5">{period.time}</p>
+                      </div>
+                    </div>
+
+                    {/* Event or Classes Content */}
+                    <div className="flex-1">
+                      {period.type === 'event' ? (
+                        // General Event Render
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 h-full flex flex-col justify-center">
+                          <div className="flex items-center gap-2 mb-2">
+                            {period.titleEn.includes('Graduation') ? <GraduationCap className="h-5 w-5 text-amber-600" /> : 
+                             period.titleEn.includes('Arrival') ? <Plane className="h-5 w-5 text-amber-600" /> :
+                             period.titleEn.includes('Homestay') ? <Home className="h-5 w-5 text-amber-600" /> :
+                             <MapPin className="h-5 w-5 text-amber-600" />}
+                            <h4 className="font-bold text-lg text-amber-900">
+                              {lang === 'en' ? period.titleEn : period.titleZh}
+                            </h4>
+                          </div>
+                          <p className="text-amber-700 text-sm mb-3">
+                            {lang === 'en' ? period.descEn : period.descZh}
+                          </p>
+                          <div className="flex items-center text-xs text-amber-600 font-medium">
+                             <MapPin className="h-3 w-3 mr-1 inline" />
+                             {lang === 'en' ? period.locationEn : period.locationZh}
+                          </div>
+                        </div>
+                      ) : (
+                        // Classes Render
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {period.classes.map((cls, cIdx) => (
+                            <div key={cIdx} className="bg-slate-50 rounded-lg p-4 border border-slate-100 flex flex-col justify-between hover:border-sky-300 transition-colors">
+                              <div>
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="inline-block bg-slate-200 text-slate-700 text-xs font-bold px-2 py-1 rounded">
+                                    {t('class')} {cls.class}
+                                  </span>
+                                  <div className="flex flex-wrap gap-1 justify-end">
+                                    {cls.foreigners.map(f => (
+                                      <span key={f} className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getPersonColor(f)}`}>
+                                        {f}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mt-2">
+                                  <BookOpen className="h-4 w-4 text-sky-600" />
+                                  {lang === 'en' ? cls.subjectEn : cls.subjectZh}
+                                </h4>
+                              </div>
+                              
+                              <div className="mt-4 pt-3 border-t border-slate-200 flex items-center gap-2 text-sm text-slate-600">
+                                 <User className="h-4 w-4" />
+                                 <span>{t('teacher')}: <span className="font-medium text-slate-800">{cls.localTeacher}</span></span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </section>
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
