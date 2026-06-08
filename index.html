@@ -167,8 +167,7 @@
           {
             time: '13:00-13:45', nameEn: 'Period 5', nameZh: '第 5 節',
             classes: [
-              { class: '704', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia'], localTeacher: 'John、張瑞芳' },
-              { class: '802', subjectEn: 'Physical Education', subjectZh: '體育課', foreigners: ['Tyler', 'Irene'], localTeacher: '連雅淇' }
+              { class: '704', subjectEn: 'Flexible Learning', subjectZh: '彈性課程', foreigners: ['Sophia', 'Tyler', 'Irene'], localTeacher: 'John、張瑞芳' }
             ]
           },
           {
@@ -267,6 +266,14 @@
               { class: '706', subjectEn: 'Club Activity - Pickleball', subjectZh: '社團活動-匹克球體驗', foreigners: ['Sophia'], localTeacher: '接待老師' },
               { class: '804', subjectEn: 'Club Activity - Pickleball', subjectZh: '社團活動-匹克球體驗', foreigners: ['Irene'], localTeacher: '接待老師' }
             ]
+          },
+          {
+            time: '17:50-20:30', type: 'event',
+            titleEn: 'Reunion & Farewell', titleZh: 'Reunion & Farewell (歡送會)',
+            locationEn: 'Chung Cheng Elementary', locationZh: '中正國小',
+            attendees: ['All'],
+            descEn: '17:50-18:00 Parents and students check-in\n18:00-18:10 Chung Cheng & Nuan Nuan Elementary Diabolo Performance\n18:10-18:20 VIP Introduction, Speech, Group Photo & Video Sharing\n18:20-20:00 American Students Sharing\n20:00-20:30 Venue Cleanup',
+            descZh: '17:50-18:00 各校家長及學生報到\n18:00-18:10 中正國小&暖暖國小扯鈴聯演\n18:10-18:20 介紹長官貴賓 教育處長官致詞 大合照 交流期間影片分享\n18:20-20:00 各校美國學生分享\n20:00-20:30 場地整理'
           }
         ]
       },
@@ -500,7 +507,7 @@
                               {lang === 'en' ? period.titleEn : period.titleZh}
                             </h4>
                           </div>
-                          <p className="text-amber-700 text-sm mb-3">
+                          <p className="text-amber-700 text-sm mb-3 whitespace-pre-line leading-relaxed">
                             {lang === 'en' ? period.descEn : period.descZh}
                           </p>
                           <div className="flex items-center text-xs text-amber-600 font-medium">
