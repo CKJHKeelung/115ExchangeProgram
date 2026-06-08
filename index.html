@@ -54,6 +54,9 @@
     const GraduationCap = ({className}) => <Icon className={className} path={<><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></>} />;
     const Home = ({className}) => <Icon className={className} path={<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />;
     const Plane = ({className}) => <Icon className={className} path={<><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6 4-3 3-3-1-2 1 2.5 3.5L10 21l1-2-1-3 3-3 4 6l1.2-.7c.4-.2.7-.6.6-1.1Z"/></>} />;
+    const FileText = ({className}) => <Icon className={className} path={<><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></>} />;
+    const X = ({className}) => <Icon className={className} path={<><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></>} />;
+    const ExternalLink = ({className}) => <Icon className={className} path={<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></>} />;
 
     // --- 資料結構 ---
     const scheduleData = [
@@ -226,7 +229,26 @@
           {
             time: '14:00-15:45', nameEn: 'Period 6-7', nameZh: '第 6-7 節',
             classes: [
-              { class: 'Conference Rm', subjectEn: 'Traditional Calligraphy', subjectZh: '傳統書法', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '江秋貞' }
+              { 
+                class: 'Conference Rm', subjectEn: 'Traditional Calligraphy', subjectZh: '傳統書法', foreigners: ['Irene', 'Tyler', 'Sophia'], localTeacher: '江秋貞',
+                details: {
+                  titleEn: 'Bilingual International Calligraphy Course Flow',
+                  titleZh: '雙語國際書法課程流程表',
+                  timeEn: '14:00~16:00',
+                  timeZh: '下午14:00~16:00',
+                  locationEn: 'Conference Room',
+                  locationZh: '成功國中會議室',
+                  presentationLink: 'https://drive.google.com/file/d/1p7hSHFlChkeBvXll9DXyLbv7b-92xO3z/view?usp=drive_link',
+                  flow: [
+                    { time: '14:00~14:10', itemEn: 'Intro to Four Treasures', itemZh: '介紹文房四寶', contentEn: 'Recognize brush, ink, paper, inkstone', contentZh: '認識文房四寶筆、墨、紙、硯', noteZh: '每人一套', noteEn: 'One set per person' },
+                    { time: '14:10~14:30', itemEn: 'Brushwork Practice', itemZh: '運筆練習', contentEn: 'Practice different brushwork styles', contentZh: '練習不同字形的運筆方式', noteZh: '字形練習學習單、宣紙、紅方紙數張', noteEn: 'Worksheets, rice paper, red square paper' },
+                    { time: '14:30~14:45', itemEn: 'Calligraphy Presentation', itemZh: '書法簡報', contentEn: 'Oracle Bone Script Experience', contentZh: '甲骨文書法體驗', noteZh: '簡報播放、馬字、羊字的字帖', noteEn: 'Slides, Horse & Sheep copybooks' },
+                    { time: '14:45~15:00', itemEn: 'Break', itemZh: '休息', contentEn: 'Take a break', contentZh: '休息一下', noteZh: '茶點', noteEn: 'Refreshments' },
+                    { time: '15:00~15:40', itemEn: 'Practice & Sharing', itemZh: '書法練習、成果分享', contentEn: 'Oracle bone script spring couplets', contentZh: '趣味甲骨文書法春聯的觀摩分享', noteZh: '展示書法成果及觀摩分享', noteEn: 'Showcase & share results' },
+                    { time: '15:40~15:45', itemEn: 'Group Photo', itemZh: '大合照', contentEn: 'Clean up & Group Photo', contentZh: '收拾文具、清洗毛筆、硯台等', noteZh: '期待有緣再見', noteEn: 'Hope to see you again' }
+                  ]
+                }
+              }
             ]
           }
         ]
@@ -322,6 +344,9 @@
         teacher: 'Teacher',
         emptySchedule: 'No scheduled activities for the selected person on this day.',
         attendees: 'Attendees:',
+        viewDetails: 'View Details',
+        close: 'Close',
+        presentation: 'Presentation Link'
       },
       zh: {
         appTitle: '交流課程安排表',
@@ -335,6 +360,9 @@
         teacher: '授課教師',
         emptySchedule: '所選人員本日無安排課程。',
         attendees: '參與者:',
+        viewDetails: '查看流程表',
+        close: '關閉',
+        presentation: '簡報連結'
       }
     };
 
@@ -342,6 +370,7 @@
       const [lang, setLang] = useState('zh');
       const [activeDate, setActiveDate] = useState('6/8');
       const [selectedPerson, setSelectedPerson] = useState('All');
+      const [selectedDetails, setSelectedDetails] = useState(null);
 
       const t = (key) => dictionary[lang][key];
 
@@ -543,6 +572,16 @@
                                  <User className="h-4 w-4" />
                                  <span>{t('teacher')}: <span className="font-medium text-slate-800">{cls.localTeacher}</span></span>
                               </div>
+                              
+                              {cls.details && (
+                                <button
+                                  onClick={() => setSelectedDetails(cls.details)}
+                                  className="mt-3 w-full flex items-center justify-center gap-1 bg-amber-100 hover:bg-amber-200 text-amber-800 py-2 rounded-md text-sm font-bold transition-colors border border-amber-200"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  {t('viewDetails')}
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -553,6 +592,62 @@
               )}
             </section>
           </main>
+
+          {/* Modal 課程詳細流程彈出分頁 */}
+          {selectedDetails && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+                
+                {/* 彈出分頁標頭 */}
+                <div className="bg-sky-700 text-white p-4 sm:p-5 flex justify-between items-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-sky-200" />
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold">{lang === 'en' ? selectedDetails.titleEn : selectedDetails.titleZh}</h2>
+                      <p className="text-sky-200 text-xs sm:text-sm">{lang === 'en' ? selectedDetails.timeEn : selectedDetails.timeZh} • {lang === 'en' ? selectedDetails.locationEn : selectedDetails.locationZh}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedDetails(null)} className="p-2 hover:bg-sky-600 rounded-full transition-colors text-white/80 hover:text-white" title={t('close')}>
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* 彈出分頁內容 (流程與連結) */}
+                <div className="p-4 sm:p-6 overflow-y-auto">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                    {selectedDetails.presentationLink && (
+                      <a href={selectedDetails.presentationLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center sm:justify-start gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 p-3 rounded-xl transition-colors w-full sm:w-fit">
+                        <ExternalLink className="w-5 h-5" />
+                        <span className="font-bold">{t('presentation')}</span>
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {selectedDetails.flow.map((item, idx) => (
+                      <div key={idx} className="flex flex-col sm:flex-row gap-2 sm:gap-4 border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                        <div className="sm:w-28 shrink-0 text-sky-700 font-bold text-sm bg-sky-50 px-2 py-1 rounded w-fit h-fit">
+                          {item.time}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-base mb-1">
+                            {lang === 'en' ? item.itemEn : item.itemZh}
+                          </h4>
+                          <p className="text-sm text-slate-600 mb-1">
+                            {lang === 'en' ? item.contentEn : item.contentZh}
+                          </p>
+                          <div className="text-xs text-slate-400 flex items-center gap-1 mt-2">
+                            <Info className="w-3 h-3" />
+                            <span>{lang === 'en' ? item.noteEn : item.noteZh}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
